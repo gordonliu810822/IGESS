@@ -5,7 +5,7 @@
 //  Created by DaiMingwei on 16/11/8.
 //  Copyright © 2016年 daviddai. All rights reserved.
 //
-
+// [[Rcpp::depends(BH)]]
 #ifndef readPlink_hpp
 #define readPlink_hpp
 

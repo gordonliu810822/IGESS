@@ -9,6 +9,8 @@ using namespace arma;
 #include "IGESS.hpp"
 #include "readPlink.hpp"
 
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(BH)]]
 
 //' @title
 //' IGESS
