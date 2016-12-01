@@ -5,7 +5,8 @@ IGESS is a statistical approach to integrating individual level genotype data an
 ##Usage
 
 The following two help pages provide a good start point for the genetic analysis using IGESS package, including the overview of IGESS package and the example command lines:
-
+library(IGESS)  
+help(package="IGESS")  
 
 ##Development 
 To install the development version of IGESS, it's easiest to use the 'devtools' package. Note that IGESS depends on the 'Rcpp' and 'RcppArmadillo' package, which also requires appropriate setting of Rtools and Xcode for Windows and Mac OS/X, respectively.
