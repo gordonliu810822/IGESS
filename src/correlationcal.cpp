@@ -1,6 +1,6 @@
 #include "correlationcal.hpp"
 #include <iostream>
-#include <armadillo>
+#include <RcppArmadillo.h>
 using namespace std;
 using namespace arma;
 #include "time.h"

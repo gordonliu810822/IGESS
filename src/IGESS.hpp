@@ -10,7 +10,7 @@
 #define IGESS_hpp
 #include <stdio.h>
 #include "IGESS_aux.hpp"
-#include <armadillo>
+#include <RcppArmadillo>
 #include <math.h>
 using namespace arma;
 

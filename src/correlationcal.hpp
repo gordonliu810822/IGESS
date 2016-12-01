@@ -1,6 +1,6 @@
 #ifndef correlationcal_hpp
 #define correlationcal_hpp
-#include <armadillo>
+#include <RcppArmadillo.h>
 #include <stdio.h>
 using namespace arma;
 using namespace std;

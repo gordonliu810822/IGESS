@@ -10,7 +10,7 @@
 #define readPlink_hpp
 
 
-#include <armadillo>
+#include <RcppArmadillo.h>
 #include<iostream>
 #include <stdio.h>
 #include "correlationcal.hpp"
