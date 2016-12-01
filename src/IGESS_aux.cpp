@@ -8,7 +8,7 @@
 
 #include "IGESS_aux.hpp"
 
-double calauc(vec label, vec pred){
+double calauc(arma::vec label, arma::vec pred){
     double auc = 0;
     double m = mean(label);
     vec label2 = label;
@@ -24,7 +24,7 @@ double calauc(vec label, vec pred){
     return auc;
 }
 
-void igess_update(float* x_j, double* gamma, double* mu, double d, double s, float* xty_pt, double logPi, double sigma2beta, double sigma2e, int N, double xy, double* ytilde_pt, double* lpsummay, vec* lpparam){
+void igess_update(float* x_j, double* gamma, double* mu, double d, double s, double* xty_pt, double logPi, double sigma2beta, double sigma2e, int N, double xy, double* ytilde_pt, double* lpsummay, vec* lpparam){
 
     double r = (*gamma) * (*mu);
 
@@ -73,17 +73,17 @@ void update_betaparam(uword P, uword K, double gamma_sum, double * lpsummary, do
 }
 
 
-fvec IGESSfit::predict(fmat* X, fmat* Z)
+vec IGESSfit::predict(mat* X, mat* Z)
 {
     uword N = X -> n_rows;
-    fmat Z0(N, 1, fill::ones);
+    mat Z0(N, 1, fill::ones);
     if ( Z == NULL ){
         Z = &Z0;
     }else{
         *Z = join_horiz(Z0, *Z);
     }
-    fvec yhat = (*Z) * this->cov
-    + (*X) * conv_to<fvec>::from(this->gammas % this->mu);
+    vec yhat = (*Z) * this->cov
+    + (*X) * conv_to<vec>::from(this->gammas % this->mu);
     return yhat;
 }
 
@@ -139,39 +139,103 @@ void update_param(uword N, uword P, Vardist vardist, double sumyytilde, vec diag
     sigma2beta = sum(term1) / sum_vardist_gamma;
 }
 
+double dotXX (double* x, float* y, uword n) {
+    double z = 0;
+    for (uword i = 0; i < n; i++)
+        z += x[i] * y[i];
+    return z;
+}
+
+mat MatXfloat(mat& Zt, float* lpfX, int P){
+    mat ZtX(Zt.n_rows, P);
+    uword N = Zt.n_cols;
+    uword n_row = Zt.n_rows;
+    Zt = Zt.t();
+    double* Z = Zt.memptr();
+    for(int i = 0; i < n_row; i++){
+        double* z_row_i = Z + i * N;
+        for(int j = 0; j < P; j++){
+            float* x_col_j = lpfX + j*N;
+            ZtX.at(i, j) = dotXX(z_row_i, x_col_j, N);
+
+        }
+    }
+    return ZtX;
+}
+
+vec vecXfloat(vec& Zt, float* lpfX, int P){
+    vec ZtX(P);
+    uword N = Zt.size();
+    double* Z = Zt.memptr();
+    for(int j = 0; j < P; j++){
+            float* x_col_j = lpfX + j*N;
+            ZtX.at(j) = dotXX(Z, x_col_j, N);
+
+    }
+    return ZtX;
+}
+
+
+void MatSub(float* lpfX, mat& m){
+    uword N = m.n_rows;
+    uword P = m.n_cols;
+    double* m_ptr = m.memptr();
+    for(uword i = 0; i < N*P; i++ ){
+        *(lpfX + i) -= *(m_ptr + i);
+    }
+}
 
 //remove the effects of covariates Z
-void remove_cov(fmat* lpfX, fvec& y, fmat* Z,fmat* SZX, fmat* SZy)
+void remove_cov(float* lpfX, int P, vec& y, mat* Z,mat* SZX, mat* SZy)
 {
     uword N = y.size();
-    fmat Z0(N, 1, fill::ones);
+    mat Z0(N, 1, fill::ones);
     if ( Z == NULL ){
         Z = &Z0;
     }else{
         *Z = join_horiz(Z0, *Z);
     }
-    fmat Zt = Z -> t();
-    fmat invZZ = (Zt*(*Z)).i();
+    mat Zt = Z -> t();
+    mat invZZ = (Zt*(*Z)).i();
     *SZy = invZZ * ( (y.t() * (*Z)).t());
-    *SZX = invZZ * ((Zt * (* lpfX)));
+    *SZX = invZZ * MatXfloat(Zt, lpfX, P);//((Zt * (* lpfX)));
     y -= (*Z) * (*SZy);
-    (*lpfX) -= (*Z) * (*SZX);
+    mat m = (*Z) * (*SZX);
+    MatSub(lpfX, m);
 
 }
 
-vec getDiag(fmat* X){
-    uword p = X -> n_cols;
-    vec diag(p);
-    for (uword i=0; i < p; i++) {
-        fvec v_i = X -> col(i);
-        diag[i] = as_scalar(v_i.t() * v_i);
+
+//void getDiagsq(double* diag, float* X, Size n, Size p){
+//    for (int i = 0; i < p; i++) {
+//        float* x = getXColumn(X, i, n);
+//        diag[i] = dotXX(x,x,n);
+//    }
+//}
+
+double dotXX (float* x, float* y, uword n) {
+    double z = 0;
+    for (uword i = 0; i < n; i++)
+        z += x[i] * y[i];
+    return z;
+}
+
+
+
+
+vec getDiag(float* X, uword P, uword N){
+   // uword p = X -> n_cols;
+    vec diag(P);
+    for (uword i=0; i < P; i++) {
+        float* v_i = X + N * i;
+        diag[i] = dotXX(v_i, v_i,N);
     }
     return diag;
 }
 
 
 //lower bound for the linear part
-double lb_linear(vec ytilde, vec diagXTX, fvec y, double sigma2e, Vardist vardist){
+double lb_linear(vec ytilde, vec diagXTX, vec y, double sigma2e, Vardist vardist){
     uword n = y.n_elem;
     double lb1 = - (0.5*n)*log(2 * M_PI * sigma2e);
     double lb2 = - 0.5 * sum(square(y-ytilde))/sigma2e;
@@ -214,7 +278,7 @@ double dot(T1* x, T2* y, int n) {
 }
 
 
-double dotX (float* x, float* y, int n) {
+double dotX (double* x, double* y, int n) {
     double sum = 0;
     //  #pragma omp parallel for reduction(+:sum)
     for (int i = 0; i < n; i++)

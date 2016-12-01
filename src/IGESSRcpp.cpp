@@ -49,14 +49,14 @@ using namespace arma;
 //' parameters \code{Z}, \code{SS},\code{opts} could be set to NULL.
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP iGess(arma::fmat& X, arma::fvec& y, SEXP Z = R_NilValue, SEXP  SS = R_NilValue, SEXP opts = R_NilValue){
+RcppExport SEXP iGess(arma::fmat& X, arma::vec& y, SEXP Z = R_NilValue, SEXP  SS = R_NilValue, SEXP opts = R_NilValue){
       Options* lp_opt = NULL;
       if(!Rf_isNull(opts)){
          Rcpp::List opt(opts);
          lp_opt = new Options(opt["max_iter"],opt["display_gap"]);
       }
-      fmat* Z_ = NULL;
-      convert2fmat(Z_, Z);
+      mat* Z_ = NULL;
+      convert2mat(Z_, Z);
       Mat<double>* Summary = NULL;
       convert2mat(Summary, SS);
       if( Summary != NULL ){
@@ -64,8 +64,11 @@ RcppExport SEXP iGess(arma::fmat& X, arma::fvec& y, SEXP Z = R_NilValue, SEXP  S
           (*Summary) = Summary -> t();
         }
       }
+   //   std::vector<float> datX = Rcpp::as<std::vector<float> >(X);
+      float* lpfX = X.memptr();
       cout << "Begin IGESS......" << endl;
-      IGESSfit* fit = iGess(&X, y, Z_,Summary,lp_opt);
+      int P = X.n_cols;
+      IGESSfit* fit = iGess(lpfX, y, P, Z_,Summary,lp_opt);
       return wrap_fit(fit);
 }
 
@@ -108,14 +111,14 @@ RcppExport SEXP iGess(arma::fmat& X, arma::fvec& y, SEXP Z = R_NilValue, SEXP  S
 //' parameters \code{Z}, \code{SS},\code{opts} could be set to NULL.
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP iGessCV(arma::fmat& X, arma::fvec& y,SEXP Z = R_NilValue, SEXP  SS = R_NilValue, SEXP opts = R_NilValue){
+RcppExport SEXP iGessCV(arma::fmat& X, arma::vec& y,SEXP Z = R_NilValue, SEXP  SS = R_NilValue, SEXP opts = R_NilValue){
   Options* lp_opt = NULL;
   if(!Rf_isNull(opts)){
     Rcpp::List opt(opts);
     lp_opt = new Options(opt["max_iter"],opt["display_gap"],opt["n_fold"]);
   }
-  fmat* Z_ = NULL;
-  convert2fmat(Z_, Z);
+  mat* Z_ = NULL;
+  convert2mat(Z_, Z);
   Mat<double>* Summary = NULL;
   convert2mat(Summary, SS);
   if( Summary != NULL ){
@@ -123,8 +126,10 @@ RcppExport SEXP iGessCV(arma::fmat& X, arma::fvec& y,SEXP Z = R_NilValue, SEXP  
       (*Summary) = Summary -> t();
     }
   }
+  float* lpfX = X.memptr();
+  int P = X.n_cols;
   cout << "Begin CV....." << endl;
-  PairCORAUC predict = iGessCV(&X, y, Z_, Summary, lp_opt);
+  PairCORAUC predict = iGessCV(lpfX, y,P, Z_, Summary, lp_opt);
   Rcpp::List ret;
   ret["auc"] = predict.auc;
   ret["cor"] = predict.cor;
@@ -194,7 +199,10 @@ RcppExport SEXP iGessPlink(Rcpp::String genoplinkfile, Rcpp::String summaryfile,
     cout <<"Number of SNPs = " << summary.lpsummary -> n_cols << endl;
     cout <<"Number of GWAS = " << summary.lpsummary -> n_rows << endl;
   }
-  IGESSfit* fit = iGess(&Xf, obj.y, NULL, summary.lpsummary,NULL);
+  obj.X.clear();
+  int P = Xf.n_cols;
+  float* lpXf = Xf.memptr();
+  IGESSfit* fit = iGess(lpXf, obj.y, P, NULL, summary.lpsummary,NULL);
   return wrap_fit(fit);
 }
 
@@ -254,6 +262,7 @@ RcppExport SEXP iGessPlinkCV(Rcpp::String genoplinkfile, Rcpp::String summaryfil
   summary.cal_overlap(obj);
   fmat Xf = conv_to<fmat>::from(obj.X);
   cout <<"N"<<Xf.n_rows <<" P="<<Xf.n_cols << endl;
+  obj.X.clear();
   if( summary.lpsummary != NULL ){
     summary.lpsummary -> replace(0,1e-12);
     cout <<"max="<<max(max(*summary.lpsummary)) << endl;
@@ -264,7 +273,10 @@ RcppExport SEXP iGessPlinkCV(Rcpp::String genoplinkfile, Rcpp::String summaryfil
     cout <<"Number of SNPs = " << summary.lpsummary -> n_cols << endl;
     cout <<"Number of GWAS = " << summary.lpsummary -> n_rows << endl;
   }
-  PairCORAUC predict = iGessCV(&Xf, obj.y, NULL, summary.lpsummary,NULL);
+  int P = Xf.n_cols;
+  float* lpXf = Xf.memptr();
+
+  PairCORAUC predict = iGessCV(lpXf, obj.y, P, NULL, summary.lpsummary,NULL);
   Rcpp::List ret;
   ret["auc"] = predict.auc;
   ret["cor"] = predict.cor;
@@ -373,14 +385,14 @@ RcppExport SEXP read_data(Rcpp::String genoplinkfile,  SEXP  summaryfile_ = R_Ni
 //'
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP iGessPredict(SEXP fit_,  arma::fmat& X, SEXP  Z = R_NilValue){
-  fvec ypred(X.n_rows);
+RcppExport SEXP iGessPredict(SEXP fit_,  arma::mat& X, SEXP  Z = R_NilValue){
+  vec ypred(X.n_rows);
   IGESSfit* fit = NULL;
   if(!Rf_isNull(fit_)){
     Rcpp::List fitList(fit_);
     fit = new IGESSfit(fitList["gammas"], fitList["mu"], fitList["cov"]);
-    fmat* Z_ = NULL;
-    convert2fmat(Z_, Z);
+    mat* Z_ = NULL;
+    convert2mat(Z_, Z);
     ypred = fit -> predict(&X, Z_);
   }else{
     cout << "Invalid input of iGESS fit!" << endl;
@@ -389,4 +401,8 @@ RcppExport SEXP iGessPredict(SEXP fit_,  arma::fmat& X, SEXP  Z = R_NilValue){
   return Rcpp::wrap(ypred);
 }
 
+// [[Rcpp::export]]
+double calaucRcpp(arma::vec label, arma::vec pred){
+    return calaucRcpp(label, pred);
+}
 

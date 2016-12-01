@@ -10,14 +10,14 @@
 //#include <libiomp/omp.h>
 
 
-IGESSfit* iGess(fmat* lpfX, fvec y, fmat* Z,  mat* lpsummaryinfo, Options* opt ){
+IGESSfit* iGess(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Options* opt ){
     cout << "Start of the main function...." << endl;
-    uword N = lpfX -> n_rows;
-    uword P = lpfX -> n_cols;
+    uword N = y.n_rows;
+    //uword P = lpfX -> n_cols;
 
-    fmat SZX;
-    fmat SZy;
-    remove_cov(lpfX, y, Z, &SZX, &SZy);
+    mat SZX;
+    mat SZy;
+    remove_cov(lpfX, P, y, Z, &SZX, &SZy);
 
     uword K = lpsummaryinfo != NULL ? (lpsummaryinfo -> n_rows) : 0;
     cout <<"K=" << K << endl;
@@ -25,8 +25,8 @@ IGESSfit* iGess(fmat* lpfX, fvec y, fmat* Z,  mat* lpsummaryinfo, Options* opt )
     int max_iter = opt -> max_iter;
     int display_gap = opt -> display_gap;
 
-    fvec xty = (y.t() * (*lpfX)).t();
-    vec diagXTX = getDiag(lpfX);
+    vec xty = vecXfloat(y, lpfX, P);//(y.t() * (*lpfX)).t();
+    vec diagXTX = getDiag(lpfX, P, N);
     double pi_p = 0.01; //pi for prior proportion
     double mu0 = 0;
     double alpha0 = 0.5; //initial parameters of beta distribtuion
@@ -37,7 +37,8 @@ IGESSfit* iGess(fmat* lpfX, fvec y, fmat* Z,  mat* lpsummaryinfo, Options* opt )
     double sigma2beta = sigma2e;
 
     vec beta = vardist.gamma % vardist.mu;
-    vec ytilde = (*lpfX) * beta;
+    vec ytilde = vec(N);//(*lpfX) * beta;
+    ytilde.zeros();
 
     Col<double>* lpparams = NULL;
     if ( K > 0 ){
@@ -49,10 +50,10 @@ IGESSfit* iGess(fmat* lpfX, fvec y, fmat* Z,  mat* lpsummaryinfo, Options* opt )
     double L = 0;
     double* lpgamma = vardist.gamma.memptr();
     double* lpmu = vardist.mu.memptr();
-    float* lpX = lpfX -> memptr();
+    float* lpX = lpfX;
     double* lpd = diagXTX.memptr();
     double* lpytilde = ytilde.memptr();
-    float* lpxy = xty.memptr();
+    double* lpxy = xty.memptr();
     double* lpsummary = lpsummaryinfo != NULL ? lpsummaryinfo -> memptr() : NULL;
     uword iter = 0;
 
@@ -93,7 +94,7 @@ IGESSfit* iGess(fmat* lpfX, fvec y, fmat* Z,  mat* lpsummaryinfo, Options* opt )
 
     }
     cout <<"L=" << L << endl;
-    fmat cov = SZy - SZX * conv_to<fvec>::from(vardist.gamma % vardist.mu);
+    mat cov = SZy - SZX * conv_to<vec>::from(vardist.gamma % vardist.mu);
     IGESSfit* fit = new IGESSfit(N, P,  K, iter, L,  sigma2e, sigma2beta, pi_p, vardist.gamma, vardist.mu
                                  , vardist.sigma2beta, lpparams,  ytilde, cov);
     return fit;
@@ -104,11 +105,11 @@ IGESSfit* iGess(fmat* lpfX, fvec y, fmat* Z,  mat* lpsummaryinfo, Options* opt )
 Description:    Calculate the correlation and auc of the cross validation of the input data
 Calls:
 Input:
-fmat* lpfX,   //(*lpfX) is a N by P matrix of float,
+mat* lpfX,   //(*lpfX) is a N by P matrix of float,
 N denotes the number of samples,
 P is the number of SNPs
-fvec y,       //y is N by 1 vector of float corresponding to phenotype of each individual
-fmat* Z,      // (*Z) is a N by M matrix of float,  M is the number of covariates for each individual
+vec y,       //y is N by 1 vector of float corresponding to phenotype of each individual
+mat* Z,      // (*Z) is a N by M matrix of float,  M is the number of covariates for each individual
 //default value : NULL
 mat* lpsummaryinfo,   //(*lpsummaryinfo) is a P by K matrix, K is the number of GWAS with Summary Statistics
 //default value : NULL
@@ -117,27 +118,29 @@ Options* opt          // the options for the functions
 Return:
  PairCORAUC      // A Struct of the value of AUC and Correlation
 ******************************************************************/
-PairCORAUC iGessCV(fmat* lpfX, fvec y, fmat* Z,  mat* lpsummaryinfo, Options* opt){
+PairCORAUC iGessCV(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Options* opt){
     opt = opt != NULL ? opt : new Options();
     uword nfold = opt -> n_fold;
-    uword N = lpfX -> n_rows;
-    uword P = lpfX -> n_cols;
+    uword N = y . n_rows;
+   // uword P = lpfX -> n_cols;
     Col<uword> indices = cross_valind(N, nfold);
-    fmat SZX;
-    fmat SZy;
-    fvec ylabel = y;
-    remove_cov(lpfX, y, Z, &SZX, &SZy);
-    fvec predY(N);
+    mat SZX;
+    mat SZy;
+    vec ylabel = y;
+    remove_cov(lpfX, P, y, Z, &SZX, &SZy);
+    vec predY(N);
+    Mat<float> Xf = Mat<float>(lpfX, N, P, false);
     for (uword i = 1; i <= nfold; i++) {
         cout <<"fold i=" << i << endl;
         Col<uword> train_idx = find(indices != i);
         Col<uword> test_idx = find(indices == i);
-        Mat<float> trainM = lpfX -> rows(train_idx);
-        fvec ytrain = y(train_idx);
-        Mat<float> testM = lpfX -> rows(test_idx);
-        fvec ytest = y(test_idx);
-        IGESSfit* f = iGess(&trainM, ytrain, NULL, lpsummaryinfo, opt);
-        fvec predy = f -> predict(&testM);
+        Mat<float> trainM = Xf.rows(train_idx);
+        vec ytrain = y(train_idx);
+        Mat<double> testM = conv_to<mat>::from(Xf . rows(test_idx));
+        vec ytest = y(test_idx);
+        float* trainX = trainM.memptr();
+        IGESSfit* f = iGess(trainX, ytrain, P,  NULL, lpsummaryinfo, opt);
+        vec predy = f -> predict(&testM);
         predY.elem(test_idx) = predy;
         double accuracy = calauc(conv_to<vec>::from(ylabel(test_idx)), conv_to<vec>::from(predy));
         cout << "accuracy = " << accuracy << endl;

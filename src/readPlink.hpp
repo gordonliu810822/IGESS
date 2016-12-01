@@ -11,9 +11,9 @@
 
 
 #include <RcppArmadillo.h>
+//#include<armadillo>
 #include<iostream>
 #include <stdio.h>
-#include "correlationcal.hpp"
 #include "plinkfun.hpp"
 #include <sstream>
 #include <boost/algorithm/string.hpp>
@@ -110,7 +110,7 @@ public:
 Col<int> getPositions(vector <string> fields, vector<string>& identifiers);
 
 
-fvec read_phenotypes(string filename, int N);
+vec read_phenotypes(string filename, int N);
 
 float normalCFD(float value);
 
@@ -144,8 +144,8 @@ public:
 //            lpsummary = convert_lpsummary;
 //            convert_lpsummary = tmp;
         }
-        
-        
+
+
         cout << "Convert z-value to p-value, time elapsed " << (clock() - t1) / CLOCKS_PER_SEC << endl;
     }
     Summary();
@@ -219,7 +219,7 @@ public:
     }
     arma::Mat<unsigned> X;
     arma::Mat<double>* lpSummary;
-    arma::fvec y;
+    arma::vec y;
     Col<uword> xindex;
     Chroms chroms;
     int N;  //sample size

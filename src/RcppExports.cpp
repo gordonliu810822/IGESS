@@ -7,13 +7,13 @@
 using namespace Rcpp;
 
 // iGess
-RcppExport SEXP iGess(arma::fmat& X, arma::fvec& y, SEXP Z, SEXP SS, SEXP opts);
+RcppExport SEXP iGess(arma::fmat& X, arma::vec& y, SEXP Z, SEXP SS, SEXP opts);
 RcppExport SEXP IGESS_iGess(SEXP XSEXP, SEXP ySEXP, SEXP ZSEXP, SEXP SSSEXP, SEXP optsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::fmat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::fvec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< SEXP >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< SEXP >::type SS(SSSEXP);
     Rcpp::traits::input_parameter< SEXP >::type opts(optsSEXP);
@@ -22,13 +22,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // iGessCV
-RcppExport SEXP iGessCV(arma::fmat& X, arma::fvec& y, SEXP Z, SEXP SS, SEXP opts);
+RcppExport SEXP iGessCV(arma::fmat& X, arma::vec& y, SEXP Z, SEXP SS, SEXP opts);
 RcppExport SEXP IGESS_iGessCV(SEXP XSEXP, SEXP ySEXP, SEXP ZSEXP, SEXP SSSEXP, SEXP optsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::fmat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::fvec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< SEXP >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< SEXP >::type SS(SSSEXP);
     Rcpp::traits::input_parameter< SEXP >::type opts(optsSEXP);
@@ -76,15 +76,27 @@ BEGIN_RCPP
 END_RCPP
 }
 // iGessPredict
-RcppExport SEXP iGessPredict(SEXP fit_, arma::fmat& X, SEXP Z);
+RcppExport SEXP iGessPredict(SEXP fit_, arma::mat& X, SEXP Z);
 RcppExport SEXP IGESS_iGessPredict(SEXP fit_SEXP, SEXP XSEXP, SEXP ZSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type fit_(fit_SEXP);
-    Rcpp::traits::input_parameter< arma::fmat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< SEXP >::type Z(ZSEXP);
     rcpp_result_gen = Rcpp::wrap(iGessPredict(fit_, X, Z));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calaucRcpp
+double calaucRcpp(arma::vec label, arma::vec pred);
+RcppExport SEXP IGESS_calaucRcpp(SEXP labelSEXP, SEXP predSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type label(labelSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type pred(predSEXP);
+    rcpp_result_gen = Rcpp::wrap(calaucRcpp(label, pred));
     return rcpp_result_gen;
 END_RCPP
 }

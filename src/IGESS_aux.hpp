@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <RcppArmadillo.h>
+//#include<armadillo>
 //#include <omp.h>
 using namespace arma;
 
@@ -40,9 +41,9 @@ public:
 
 class DataModel{ //model to store the original data
 public:
-    DataModel(fmat* X, fvec* y, Col<int>* labels, vec* beta, double h){
-        this -> X = new Mat<float>(X -> memptr(), X->n_rows, X -> n_cols, false);
-        this -> y = new Col<float>(y -> memptr(), y->size(), false);
+    DataModel(mat* X, vec* y, Col<int>* labels, vec* beta, double h){
+        this -> X = new Mat<double>(X -> memptr(), X->n_rows, X -> n_cols, false);
+        this -> y = new Col<double>(y -> memptr(), y->size(), false);
         this -> labels = new Col<int>(labels -> memptr(), labels->size(), false);
         this -> beta = new Col<double> (beta -> memptr(), beta -> size(), false);
         this -> h = h;
@@ -54,8 +55,8 @@ public:
         delete this -> labels;
         delete this -> beta;
     }
-    fmat* X;
-    fvec* y;
+    mat* X;
+    vec* y;
     Col<int>* labels;
     vec* beta;
     double h; // heritability
@@ -67,7 +68,7 @@ class IGESSfit{
     //class for the model generated
 
 public:
-    IGESSfit( uword N, uword P,  uword K, uword iter, double L,  double sigam2e, double sigma2beta, double Pi, vec gammas, vec mu, vec S, vec* pParam, vec Xr, fmat cov){
+    IGESSfit( uword N, uword P,  uword K, uword iter, double L,  double sigam2e, double sigma2beta, double Pi, vec gammas, vec mu, vec S, vec* pParam, vec Xr, mat cov){
         this -> N = N;
         this -> P = P;
         this -> K = K;
@@ -87,7 +88,7 @@ public:
 
     }
 
-    IGESSfit(vec gammas, vec mu, fmat cov){
+    IGESSfit(vec gammas, vec mu, mat cov){
        this -> gammas = gammas;
        this -> mu = mu;
        this -> cov = cov;
@@ -96,7 +97,7 @@ public:
 
     }
 
-    fvec predict(fmat* X, fmat* Z = NULL);
+    vec predict(mat* X, mat* Z = NULL);
     void cal_powerfdr(DataModel* model, double threshold,PerformanceObject* po);
     double cal_auc(DataModel* model);
 
@@ -113,7 +114,7 @@ public:
     vec S;
     vec* pParam;
     vec Xr;
-    fmat cov;
+    mat cov;
 
 
 };
@@ -145,16 +146,17 @@ public:
 
 vec fdr2FDR(vec fdr);
 
-Col<double> getDiag(fmat* X);
-double lb_linear(vec ytilde, vec diagXTX, fvec y, double sigma2e, Vardist vardist);
+vec getDiag(float* X, uword P, uword N);
+
+double lb_linear(vec ytilde, vec diagXTX, vec y, double sigma2e, Vardist vardist);
 double lb_gamma(vec gamma, double log_pi);
 double lb_klbeta(Vardist vardist, double sigma2beta);
 
-
 double dotX (float* x, double* y, int n);
+double dotX (double* x, double* y, int n);
 void addX (double* y, double a, float* x, int n);
 
-void igess_update(float* x_j, double* gamma, double* mu, double d, double s, float* xty_pt, double logPi, double sigma2beta, double sigma2e, int N, double xy, double* ytilde_pt, double* lpsummay = NULL, vec* lpparam = NULL);
+void igess_update(float* x_j, double* gamma, double* mu, double d, double s, double* xty_pt, double logPi, double sigma2beta, double sigma2e, int N, double xy, double* ytilde_pt, double* lpsummay = NULL, vec* lpparam = NULL);
 
 /*update the parameters of the gamma distributions*/
 void update_betaparam(uword P, uword K, double gamma_sum, double * lpsummary, double* lpgamma, vec* lpparams);
@@ -164,7 +166,9 @@ double lb_pvalue(uword P, uword K, double * lpsummary, double* lpgamma, vec* lpp
 void update_param(uword N, uword P, Vardist vardist, double sumyytilde, vec diagXTX, double& sigma2e, double& sigma2beta, double& pi_p);
 
 //remove the effects of covariates Z
-void remove_cov(fmat* lpfX, fvec& y, fmat* Z,fmat* SZX,fmat* SZy);
+void remove_cov(float* lpfX, int P, vec& y, mat* Z,mat* SZX,mat* SZy);
 double calauc(vec label, vec pred);
+mat MatXfloat(mat& Zt, float* lpfX, int P);
+vec vecXfloat(vec& Zt, float* lpfX, int P);
 
 #endif /* IGESS_aux_hpp */

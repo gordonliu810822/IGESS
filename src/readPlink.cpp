@@ -56,7 +56,7 @@ GenoInfo::GenoInfo(string stringname) {
     this -> P =  getLineNum(bimfile);
 
     Chroms chroms(bimfile, P);
-    fvec y = read_phenotypes(famfile, N);
+    vec y = read_phenotypes(famfile, N);
 
     unsigned* X = new unsigned[ N * P];
     clock_t t1 = clock();
@@ -64,7 +64,7 @@ GenoInfo::GenoInfo(string stringname) {
     cout<<"Finish Reading Plink file, time elapsed:"<< (clock() - t1)*1.0/CLOCKS_PER_SEC << endl;
     cout <<"Sample Size =" <<  N << " SNP Number:" << P << endl;
     arma::Mat<unsigned>* Xdata = new arma::Mat<unsigned>(X, N, P, false,false);
-    // arma::fmat corMat = calCorr(Xdata, index, avbIndex, bandwidth);
+    // arma::mat corMat = calCorr(Xdata, index, avbIndex, bandwidth);
     this -> X = *Xdata;
     this -> X.replace(3, 0);
     this -> chroms = chroms;
@@ -105,11 +105,11 @@ int snps_overlap(vector<SNP>& chrom_x_i, vector<SNP>& chrom_s_i, Col<uword>& xin
 
 }
 
-fvec read_phenotypes(string filename, int N){
+vec read_phenotypes(string filename, int N){
     std::ifstream ifs(filename.c_str());
 
     std::string line;
-    fvec y(N);
+    vec y(N);
     string snpname;
     float pheno = 0;
     string tmp_str;
@@ -322,7 +322,7 @@ bool SNP::operator == (const SNP& obj) const{
 //  int P =  getLineNum(bimfile);
 //
 //  Chroms chroms = read_snpnames(bimfile, P);
-//  fvec y = read_phenotypes(famfile, N);
+//  vec y = read_phenotypes(famfile, N);
 //
 //  arma::vec index(22);
 //  double sum2 = 0;
@@ -337,7 +337,7 @@ bool SNP::operator == (const SNP& obj) const{
 //  cout<<"Finish Reading Plink file, time elapsed:"<< (clock() - t1)*1.0/CLOCKS_PER_SEC << endl;
 //  cout <<"Sample Size =" <<  N << " SNP Number:" << P << endl;
 //  arma::Mat<unsigned>* Xdata = new arma::Mat<unsigned>(X, N, P, false,false);
-// // arma::fmat corMat = calCorr(Xdata, index, avbIndex, bandwidth);
+// // arma::mat corMat = calCorr(Xdata, index, avbIndex, bandwidth);
 //  GenoInfo obj;
 //  obj.X = *Xdata;
 //  obj.chroms = chroms;
