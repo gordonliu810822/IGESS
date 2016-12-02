@@ -9,14 +9,13 @@
 #ifndef readPlink_hpp
 #define readPlink_hpp
 
-
-#include <RcppArmadillo.h>
-//#include<armadillo>
 #include<iostream>
-#include <stdio.h>
-#include "plinkfun.hpp"
 #include <sstream>
+#include <stdio.h>
 #include <boost/algorithm/string.hpp>
+
+#include "plinkfun.hpp"
+#include "IGESS_aux.hpp"
 //#include <libiomp/omp.h>
 #include <map>
 
@@ -78,9 +77,6 @@ public:
     Chroms(string bimfile, int P){
         *this = read_snpnames(bimfile, P);
     }
-
-
-
     void clear(){
         if(snps != NULL){
             delete[] snps;
@@ -128,24 +124,16 @@ public:
     map< string, vector <string> > config;
     void convert(){
         clock_t t1 = clock();
-        if(type == zvalue_v){
-     //       convert_lpsummary = new Mat<double>(lpsummary ->n_rows, lpsummary -> n_cols);
+        if(this -> type == zvalue_v){
             float zvalue = 0;
             for(uword i = 0; i < lpsummary ->n_rows; i++){
                 for(uword j = 0; j < lpsummary -> n_cols; j++){
                     zvalue = (*lpsummary).at(i,j);
                     zvalue = abs(zvalue);
-              //      convert_lpsummary->at(i,j) = 2*(1 - normalCFD(zvalue));
                     (*lpsummary).at(i,j) = 2*(1 - normalCFD(zvalue));
-              //      cout << 2*(1 - normalCFD(abs(zvalue))) << endl;
                 }
             }
-//            mat* tmp = lpsummary;
-//            lpsummary = convert_lpsummary;
-//            convert_lpsummary = tmp;
         }
-
-
         cout << "Convert z-value to p-value, time elapsed " << (clock() - t1) / CLOCKS_PER_SEC << endl;
     }
     Summary();

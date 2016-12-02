@@ -88,15 +88,3 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// calaucRcpp
-double calaucRcpp(arma::vec label, arma::vec pred);
-RcppExport SEXP IGESS_calaucRcpp(SEXP labelSEXP, SEXP predSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type label(labelSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type pred(predSEXP);
-    rcpp_result_gen = Rcpp::wrap(calaucRcpp(label, pred));
-    return rcpp_result_gen;
-END_RCPP
-}

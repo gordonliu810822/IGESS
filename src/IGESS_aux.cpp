@@ -15,8 +15,8 @@ double calauc(arma::vec label, arma::vec pred){
     label2(find(label >= m)).fill(1);
     label2(find(label <= m)).fill(0);
     label = label2;
-    int N = pred.size();
-    int N_pos = sum(label);
+    uword N = pred.size();
+    uword N_pos = sum(label);
     uvec  idx = sort_index(pred,"descend");
     vec above = linspace<vec>(1, N, N) - cumsum(label(idx));
     auc = (1 - sum(above % label(idx)) / (N_pos * (N-N_pos)));
@@ -38,7 +38,7 @@ void igess_update(float* x_j, double* gamma, double* mu, double d, double s, dou
     if (lpsummay != NULL && lpparam != NULL) {
         uword K = lpparam -> size();
         double* lppara = lpparam -> memptr();
-        for (int i = 0; i < K; i++) {
+        for (uword i = 0; i < K; i++) {
             ai += log(lppara[i]) + (lppara[i] - 1) * log(lpsummay[i]);
         }
         SSR_logratio += ai;
@@ -60,9 +60,9 @@ void update_betaparam(uword P, uword K, double gamma_sum, double * lpsummary, do
     vec alphalogpvec(K);
     alphalogpvec.fill(0);
     double* lpalphalogp = alphalogpvec.memptr();
-    for(int k=0; k < K; k++)
+    for(uword k=0; k < K; k++)
     {
-        for (int j = 0; j < P; j++)
+        for (uword j = 0; j < P; j++)
         {
             double pvalue = *(lpsummary + K * j + k);
             lpalphalogp[k] += (*(lpgamma + j))*(-log(pvalue));
@@ -118,9 +118,9 @@ double lb_pvalue(uword P, uword K, double * lpsummary, double* lpgamma, vec* lpp
     if(K == 0) return lb;
     double* lpparam = lpparams -> memptr();
     double pvalue = 0;
-    for (int k = 0; k < K; k++) {
+    for (uword k = 0; k < K; k++) {
         double param_k = *(lpparam + k);
-        for (int j = 0; j < P; j++){
+        for (uword j = 0; j < P; j++){
             pvalue =  *(lpsummary + j * K + k);
             lb += (*(lpgamma + j)) * (log(param_k) + (param_k - 1)*log(pvalue));
         }
@@ -152,9 +152,9 @@ mat MatXfloat(mat& Zt, float* lpfX, int P){
     uword n_row = Zt.n_rows;
     Zt = Zt.t();
     double* Z = Zt.memptr();
-    for(int i = 0; i < n_row; i++){
+    for(uword i = 0; i < n_row; i++){
         double* z_row_i = Z + i * N;
-        for(int j = 0; j < P; j++){
+        for(uword j = 0; j < P; j++){
             float* x_col_j = lpfX + j*N;
             ZtX.at(i, j) = dotXX(z_row_i, x_col_j, N);
 
@@ -269,16 +269,9 @@ double lb_klbeta(Vardist vardist, double sigma2beta){
     return lb;
 }
 
-template<typename T1, typename T2>
-double dot(T1* x, T2* y, int n) {
-    double z = 0;
-    for (int i = 0; i < n; i++)
-        z += x[i] * y[i];
-    return z;
-}
 
-
-double dotX (double* x, double* y, int n) {
+template <typename T>
+double dotX (T* x, double* y, int n) {
     double sum = 0;
     //  #pragma omp parallel for reduction(+:sum)
     for (int i = 0; i < n; i++)
@@ -286,14 +279,6 @@ double dotX (double* x, double* y, int n) {
     return sum;
 }
 
-
-double dotX (float* x, double* y, int n) {
-    double sum = 0;
-    //  #pragma omp parallel for reduction(+:sum) num_threads(4)
-    for (int i = 0; i < n; i++)
-        sum += x[i] * y[i];
-    return sum;
-}
 
 void addX (double* y, double a, float* x, int n) {
     //   #pragma omp parallel for num_threads(4)

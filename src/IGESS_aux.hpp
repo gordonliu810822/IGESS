@@ -10,10 +10,9 @@
 #define IGESS_aux_hpp
 
 #include <stdio.h>
-#include <RcppArmadillo.h>
-//#include<armadillo>
-//#include <omp.h>
+#include <armadillo>
 using namespace arma;
+//#include <omp.h>
 
 const int kPValueVer = 0;
 const int kVbVer = 1;
@@ -152,8 +151,9 @@ double lb_linear(vec ytilde, vec diagXTX, vec y, double sigma2e, Vardist vardist
 double lb_gamma(vec gamma, double log_pi);
 double lb_klbeta(Vardist vardist, double sigma2beta);
 
-double dotX (float* x, double* y, int n);
-double dotX (double* x, double* y, int n);
+template <typename T>
+double dotX (T* x, double* y, int n);
+//double dotX (double* x, double* y, int n);
 void addX (double* y, double a, float* x, int n);
 
 void igess_update(float* x_j, double* gamma, double* mu, double d, double s, double* xty_pt, double logPi, double sigma2beta, double sigma2e, int N, double xy, double* ytilde_pt, double* lpsummay = NULL, vec* lpparam = NULL);

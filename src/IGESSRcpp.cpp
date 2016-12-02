@@ -7,6 +7,7 @@
 #include "IGESS_aux.hpp"
 #include "IGESS.hpp"
 #include "readPlink.hpp"
+
 using namespace Rcpp;
 using namespace arma;
 
@@ -188,6 +189,7 @@ RcppExport SEXP iGessCV(arma::fmat& X, arma::vec& y,SEXP Z = R_NilValue, SEXP  S
 // [[Rcpp::export]]
 RcppExport SEXP iGessPlink(Rcpp::String genoplinkfile, Rcpp::String summaryfile, Rcpp::String configfile){
   GenoInfo obj(genoplinkfile);
+  //cout <<"config=" << configfile << endl;
   Summary summary(summaryfile, configfile);
   summary.cal_overlap(obj);
   fmat Xf = conv_to<fmat>::from(obj.X);
@@ -263,6 +265,7 @@ RcppExport SEXP iGessPlinkCV(Rcpp::String genoplinkfile, Rcpp::String summaryfil
   fmat Xf = conv_to<fmat>::from(obj.X);
   cout <<"N"<<Xf.n_rows <<" P="<<Xf.n_cols << endl;
   obj.X.clear();
+  cout << "Before Loop" << endl;
   if( summary.lpsummary != NULL ){
     summary.lpsummary -> replace(0,1e-12);
     cout <<"max="<<max(max(*summary.lpsummary)) << endl;
@@ -401,8 +404,4 @@ RcppExport SEXP iGessPredict(SEXP fit_,  arma::mat& X, SEXP  Z = R_NilValue){
   return Rcpp::wrap(ypred);
 }
 
-// [[Rcpp::export]]
-double calaucRcpp(arma::vec label, arma::vec pred){
-    return calaucRcpp(label, pred);
-}
 

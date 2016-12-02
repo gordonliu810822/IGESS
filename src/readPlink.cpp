@@ -75,7 +75,6 @@ int snps_overlap(vector<SNP>& chrom_x_i, vector<SNP>& chrom_s_i, Col<uword>& xin
 
     vector<SNP> common_snp_in_x;
     vector<SNP> common_snp_in_ss;
-    //  cout << chrom_x_i[0] << "  " << chrom_x_i[1] << endl;
     sort(chrom_s_i.begin(), chrom_s_i.end());
     sort(chrom_x_i.begin(), chrom_x_i.end());
 
@@ -87,8 +86,8 @@ int snps_overlap(vector<SNP>& chrom_x_i, vector<SNP>& chrom_s_i, Col<uword>& xin
     //  xindex.resize(common_snp_in_x.size());
     Mat<uword> indexPair(common_snp_in_x.size(), 2);
     for(int i = 0; i < common_snp_in_x.size(); i++){
-        indexPair(i,0) = common_snp_in_x[i].idx;
-        indexPair(i,1) = common_snp_in_ss[i].idx;
+        indexPair(i,0) = (uword)common_snp_in_x[i].idx;
+        indexPair(i,1) = (uword)common_snp_in_ss[i].idx;
     }
 
     uvec sorted_index = sort_index(indexPair.col(0));
@@ -234,8 +233,12 @@ Summary::Summary(string summaryfile, vector<string> identifiers, string snpident
 
     pos.set_size(pos.size()-2);
     gwasidentifiers = identifiers;
-    lpsummary = new Mat<double>(P, pos.size(), fill::randn);
-    for(uword i = 0; i < P; i++)
+    //to fill the missing value to random numbers for z-value and p-value version respectively
+    if(this -> type == zvalue_v)
+        lpsummary = new Mat<double>(P, pos.size(), fill::randn);
+    else
+        lpsummary = new Mat<double>(P, pos.size(), fill::randu);
+    for(uword i = 0; i < (uword)P; i++)
     {
         std::getline(ifs, line);
         boost::split( fields, line, boost::is_any_of(" \t *"));

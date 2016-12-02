@@ -3,24 +3,19 @@
 //  IGESSArma
 //
 //  Created by DaiMingwei on 16/11/8.
-//  Copyright © 2016年 daviddai. All rights reserved.
+//  Copyright © 2016年 daviddai,eeyang. All rights reserved.
 //
 
 #include "IGESS.hpp"
-//#include <libiomp/omp.h>
-
 
 IGESSfit* iGess(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Options* opt ){
     cout << "Start of the main function...." << endl;
     uword N = y.n_rows;
-    //uword P = lpfX -> n_cols;
-
     mat SZX;
     mat SZy;
     remove_cov(lpfX, P, y, Z, &SZX, &SZy);
 
     uword K = lpsummaryinfo != NULL ? (lpsummaryinfo -> n_rows) : 0;
-    cout <<"K=" << K << endl;
     opt = opt != NULL ? opt : new Options();
     int max_iter = opt -> max_iter;
     int display_gap = opt -> display_gap;
@@ -87,13 +82,12 @@ IGESSfit* iGess(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Options*
             printf("Lowerbound decreasing,Error at iteration %d th iteration, diff=%g",iter,L-L0);
             break;
         }else if(L - L0 < 1e-5){
-            printf("Converge at %d th iteration",iter);
+            printf("Converge at %d th iteration, L = %f",iter, L);
             break;
         }
         L0 = L;
 
     }
-    cout <<"L=" << L << endl;
     mat cov = SZy - SZX * conv_to<vec>::from(vardist.gamma % vardist.mu);
     IGESSfit* fit = new IGESSfit(N, P,  K, iter, L,  sigma2e, sigma2beta, pi_p, vardist.gamma, vardist.mu
                                  , vardist.sigma2beta, lpparams,  ytilde, cov);
@@ -122,7 +116,6 @@ PairCORAUC iGessCV(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Optio
     opt = opt != NULL ? opt : new Options();
     uword nfold = opt -> n_fold;
     uword N = y . n_rows;
-   // uword P = lpfX -> n_cols;
     Col<uword> indices = cross_valind(N, nfold);
     mat SZX;
     mat SZy;
@@ -136,9 +129,11 @@ PairCORAUC iGessCV(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Optio
         Col<uword> test_idx = find(indices == i);
         Mat<float> trainM = Xf.rows(train_idx);
         vec ytrain = y(train_idx);
+
         Mat<double> testM = conv_to<mat>::from(Xf . rows(test_idx));
         vec ytest = y(test_idx);
         float* trainX = trainM.memptr();
+
         IGESSfit* f = iGess(trainX, ytrain, P,  NULL, lpsummaryinfo, opt);
         vec predy = f -> predict(&testM);
         predY.elem(test_idx) = predy;
@@ -155,14 +150,15 @@ PairCORAUC iGessCV(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Optio
     return pair;
 }
 
-
-Col<uword> cross_valind(uword N, uword nfold){
+/**shuffle the index for cross validation*/
+arma::Col<uword> cross_valind(arma::uword N, arma::uword nfold){
+    arma::Col<uword> indices(N);
     arma_rng::set_seed_random();
-    Col<uword> vec_n = shuffle(linspace < Col <uword> >(1, N, N));
-    Col<uword> indices(N);
+    arma::Col<uword> vec_n = arma::shuffle(arma::linspace < arma::Col <uword> >(1, N, N));
+
     indices.fill(nfold);
     for(uword n = 1; n <= nfold-1; n++){
-        Col<uword> in = vec_n.rows((n-1)*N/nfold,n*N/nfold - 1);
+        arma::Col<uword> in = vec_n.rows((n-1)*N/nfold,n*N/nfold - 1);
         indices.elem(in - 1 ).fill(n);
     }
     return indices;
