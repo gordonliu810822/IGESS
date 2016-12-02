@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #IGESS
 
 IGESS is a statistical approach to integrating individual level genotype data and summary statistics in Genome Wide Association Studies. 'IGESS' R package provides computationally efficient and user friendly interface to fit and evaluate the IGESS model. It accepts both the R-type data  and binary plink files.
@@ -18,3 +19,7 @@ install_github("daviddaigithub/IGESS")
 
 ##References
 
+=======
+# IGESS
+IGESS(Gentic Analysis integrating individual level data and summary statistics)
+>>>>>>> c0a44e88fea7a52e78ceb91619fc72079d069f9b
