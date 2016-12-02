@@ -1,16 +1,16 @@
-#define ARMA_NO_DEBUG
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(BH)]]
 #include <RcppArmadillo.h>
 #include <R.h>
 #include <Rinternals.h>
 #include "Rcpp_aux.hpp"
-using namespace Rcpp;
-using namespace arma;
 #include "IGESS_aux.hpp"
 #include "IGESS.hpp"
 #include "readPlink.hpp"
+using namespace Rcpp;
+using namespace arma;
 
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::depends(BH)]]
+
 
 //' @title
 //' IGESS

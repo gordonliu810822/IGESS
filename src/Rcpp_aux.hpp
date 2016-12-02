@@ -26,14 +26,14 @@ void convert2mat(Mat<double>*& obj, SEXP input){
   }
 }
 
-//convert to SEXP to required Mat<float>
-void convert2fmat(Mat<float>* obj, SEXP input){
-  if(!Rf_isNull(input)){
-    Rcpp::NumericMatrix T = DF2mat(input);
-    arma::mat Td(T.begin(), T.nrow(), T.ncol(), false);
-    (*obj) = conv_to<fmat>::from(Td);
-  }
-}
+// //convert to SEXP to required Mat<float>
+// void convert2fmat(Mat<float>* obj, SEXP input){
+//   if(!Rf_isNull(input)){
+//     Rcpp::NumericMatrix T = DF2mat(input);
+//     arma::mat Td(T.begin(), T.nrow(), T.ncol(), false);
+//     (*obj) = conv_to<fmat>::from(Td);
+//   }
+// }
 
 RcppExport SEXP wrap_fit(IGESSfit* fit){
   Rcpp::List ret;

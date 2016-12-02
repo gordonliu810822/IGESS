@@ -57,7 +57,7 @@ IGESSfit* iGess(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Options*
     double* lpsummary = lpsummaryinfo != NULL ? lpsummaryinfo -> memptr() : NULL;
     uword iter = 0;
 
-    for (iter = 0; iter < max_iter; iter ++) {
+    for (int iter = 0; iter < max_iter; iter ++) {
         clock_t t1 = clock();
         if(iter == 0)  cout <<"Begin Iterations" << endl;
         double logPi = log(pi_p / (1 - pi_p));
@@ -81,13 +81,13 @@ IGESSfit* iGess(float* lpfX, vec y, int P, mat* Z,  mat* lpsummaryinfo, Options*
         L = lb_linear(ytilde, diagXTX,y, sigma2e, vardist) + lb_gamma(vardist.gamma, logPi) +lb_klbeta(vardist, sigma2beta) + lb_pvalue(P, K, lpsummary, lpgamma, lpparams);
 
         if(iter % display_gap == 0){
-            printf("%llu iteration,L=%f sigma2e = %f sigma2beta = %f time = %f \n",iter, L, sigma2e, sigma2beta, (clock() - t1)*1.0/CLOCKS_PER_SEC);
+            printf("%d iteration,L=%f sigma2e = %f sigma2beta = %f time = %f \n",iter, L, sigma2e, sigma2beta, (clock() - t1)*1.0/CLOCKS_PER_SEC);
         }
         if(L < L0){
-            printf("Lowerbound decreasing,Error at iteration %llu th iteration, diff=%g",iter,L-L0);
+            printf("Lowerbound decreasing,Error at iteration %d th iteration, diff=%g",iter,L-L0);
             break;
         }else if(L - L0 < 1e-5){
-            printf("Converge at %lluth iteration",iter);
+            printf("Converge at %d th iteration",iter);
             break;
         }
         L0 = L;

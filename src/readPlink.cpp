@@ -36,11 +36,6 @@ Col<int> getPositions(vector <string> fields, vector<string>& identifiers){
         }
 
     }
-    //    for(int i = (int)size - 1; i >= 0; i--){
-    //        if( pos[i] == -1){
-    //            identifiers.erase(identifiers.begin() + i);
-    //        }
-    //    }
     return pos;
 
 }
@@ -120,19 +115,10 @@ vec read_phenotypes(string filename, int N){
         std::istringstream iss(line); // access line as a stream
         vector<string> fields;
         boost::split( fields, line, boost::is_any_of(" "));
-
-    //     chromsome = (int)atoi(fields[0].c_str());
         pheno = (int)atoi(fields[phenopos].c_str());
-//        for(int i=0; i < fields.size(); i++){
-//            cout << fields[i] <<"  ";
-//        }
-//        cout << pheno << endl;
         y[idx] = pheno;
-        
         idx++;
-
     }
-   // cout << y << endl;
     ifs.close();
     return y;
 }
@@ -145,7 +131,6 @@ Chroms read_snpnames(string filename, int P){
     int chromsome;
     string snpname;
     vector <string> fields;
-    clock_t t1 = clock();
     int i = 0;
     while(std::getline(ifs, line)) // read one line from ifs
     {
@@ -161,7 +146,6 @@ Chroms read_snpnames(string filename, int P){
         chroms.A1Array[i] = a1;
         chroms.A2Array[i] = a2;
         i++;
-        //  chroms.push(snpname, chromsome, a1, a2);
 
     }
     ifs.close();
@@ -219,9 +203,6 @@ void Summary::cal_overlap(GenoInfo& genoinfo)
     genoinfo.xindex = xindex;
     genoinfo.N = (int)genoinfo.X.n_rows;
     genoinfo.P = (int)genoinfo.X.n_cols;
-
-  //  return genoobj;
-
 }
 
 
@@ -230,7 +211,6 @@ void Summary::cal_overlap(GenoInfo& genoinfo)
 Summary::Summary(string summaryfile, vector<string> identifiers, string snpidentifier,
                  string chromidentifier){
     this -> chrom_no = 1;
-    this -> type = type;
     cout << "loading summary data...." << endl;
     cout << "summaryfile =" << summaryfile << endl;
     this -> P = getLineNum(summaryfile) - 1;
@@ -239,20 +219,19 @@ Summary::Summary(string summaryfile, vector<string> identifiers, string snpident
     std::getline(ifs, line);
     vector <string> fields;
     boost::split( fields, line, boost::is_any_of(" \t *"));
-    
+
     identifiers.push_back(chromidentifier);
     identifiers.push_back(snpidentifier);
 
     Col<int> pos = getPositions(fields, identifiers);
     clock_t t1 = clock();
     uword snp_index = pos[pos.size()-1];
-    // identifiers.erase(identifiers.end() - 1);
     int chr_index = pos[pos.size()-2];
     this -> chroms = new Chroms(P);
     if(chr_index == -1){
         this -> chroms -> chrom_no = 1;
     }
-    
+
     pos.set_size(pos.size()-2);
     gwasidentifiers = identifiers;
     lpsummary = new Mat<double>(P, pos.size(), fill::randn);
