@@ -16,8 +16,9 @@ install.packages("devtools")
 library(devtools)  
 install_github("daviddaigithub/IGESS")  
 
-##References#
+##References
 M. Dai, J. Ming, M., Cai, J. Liu, C. Yang, X. Wan, and Z. Xu. IGESS: A statistical approach to integrating individual level genotype data and summary statistics in genome wide association studies. Bioinformatics. 2017 Sep 15;33(18):2882-2889. doi: 10.1093/bioinformatics/btx314
+
 =======
 # IGESS
 IGESS(Gentic Analysis integrating individual level data and summary statistics)
