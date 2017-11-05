@@ -21,7 +21,7 @@ To install the development version of IGESS, it's easiest to use the 'devtools' 
 
 install.packages("devtools")  
 library(devtools)  
-install_github("daviddaigithub/IGESS")  
+install_github("daviddaigithub/IGESS0")  
 
 References
 =======
